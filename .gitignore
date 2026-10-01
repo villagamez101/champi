@@ -1,0 +1,22 @@
+# Local secrets — never commit the real .env
+.env
+.env.*
+!.env.example
+
+# Dependencies / builds (uncomment when the project uses them)
+# node_modules/
+# dist/
+# build/
+# __pycache__/
+# *.pyc
+
+# Large generated artifacts live in 03_outputs — decide what is worth versioning
+# (keep final deliverables under ~10MB, archive the rest)
+*.psd
+*.AIN
+*.mp4
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp

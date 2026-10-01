@@ -1,0 +1,10 @@
+* text=auto
+
+# Scripts and docs always LF
+*.md text
+*.json text
+*.sh text eol=lf
+
+# Windows-only files
+*.ps1 text eol=crlf
+*.bat text eol=crlf
