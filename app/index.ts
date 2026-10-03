@@ -144,7 +144,7 @@ app.post("/api/conversations/:id/messages", async (c) => {
   if (model !== conv.model) setConversationModel(id, model);
 
   const history = getMessages(id);
-  const upstreamMessages = buildUpstreamMessages(history);
+  const upstreamMessages = buildUpstreamMessages(history, model);
 
   const controller = new AbortController();
 

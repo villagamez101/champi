@@ -10,6 +10,8 @@ export interface UpstreamMessage {
   content: string | Array<Record<string, unknown>>;
 }
 
+export const VISION_MODELS = new Set(["deepseek-v4-flash-vision-exp", "mimo-v2-omni"]);
+
 let modelsCache: { at: number; data: unknown } | null = null;
 
 export async function listModels(): Promise<unknown> {
@@ -37,11 +39,18 @@ function imageToDataUrl(url: string, mime: string): string {
   return `data:${mime || "image/png"};base64,${bytes.toString("base64")}`;
 }
 
-export function buildUpstreamMessages(history: StoredMessage[]): UpstreamMessage[] {
+export function buildUpstreamMessages(history: StoredMessage[], model?: string): UpstreamMessage[] {
+  const allowImages = !model || VISION_MODELS.has(model);
   return history.map((msg) => {
-    const images = msg.content.filter((p): p is Extract<Part, { type: "image" }> => p.type === "image");
+    const hasImages = msg.content.some((p) => p.type === "image");
+    const images = allowImages
+      ? msg.content.filter((p): p is Extract<Part, { type: "image" }> => p.type === "image")
+      : [];
     const texts = msg.content.filter((p): p is Extract<Part, { type: "text" }> => p.type === "text");
-    const text = texts.map((p) => p.text).join("\n");
+    let text = texts.map((p) => p.text).join("\n");
+    if (!allowImages && hasImages && !text.trim()) {
+      text = "[El usuario adjuntó una imagen, pero el modelo actual no admite imágenes.]";
+    }
     if (images.length === 0) {
       return { role: msg.role, content: text };
     }
