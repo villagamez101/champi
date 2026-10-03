@@ -241,5 +241,6 @@ app.get("*", serveStatic({ path: join(PUBLIC_DIR, "index.html") }));
 
 export default {
   port: Number(process.env.PORT) || 3000,
+  idleTimeout: 0,
   fetch: app.fetch,
 };
