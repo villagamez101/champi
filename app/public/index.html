@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Champi</title>
+    <link rel="stylesheet" href="/vendor/github-dark.min.css" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="login" class="login hidden">
+      <form id="login-form" class="login-card">
+        <h1>Champi</h1>
+        <p>Introduce la contraseña para continuar.</p>
+        <input id="password" type="password" placeholder="Contraseña" autocomplete="current-password" />
+        <button type="submit">Entrar</button>
+        <span id="login-error" class="error"></span>
+      </form>
+    </div>
+
+    <div id="app" class="layout hidden">
+      <aside id="sidebar">
+        <div class="sidebar-head">
+          <span class="brand">Champi</span>
+          <button id="new-chat" class="primary">+ Nuevo</button>
+        </div>
+        <nav id="conversations" class="conversations"></nav>
+        <div class="sidebar-foot">
+          <button id="logout" class="ghost">Cerrar sesión</button>
+        </div>
+      </aside>
+
+      <div id="scrim" class="scrim hidden"></div>
+
+      <main class="main">
+        <header class="topbar">
+          <button id="toggle-sidebar" class="ghost mobile-only" aria-label="Menú">☰</button>
+          <select id="model" class="model-select"></select>
+          <span id="vision-warn" class="badge hidden">modelo sin visión</span>
+        </header>
+
+        <section id="messages" class="messages">
+          <div class="empty" id="empty-state">
+            <h2>¿En qué te ayudo hoy?</h2>
+            <p>Escribe, pega o adjunta una imagen.</p>
+          </div>
+        </section>
+
+        <footer class="composer-wrap">
+          <div id="attachments" class="attachments"></div>
+          <form id="composer" class="composer">
+            <textarea id="input" rows="1" placeholder="Escribe un mensaje… (Enter para enviar)"></textarea>
+            <button type="button" id="attach" class="icon" title="Adjuntar imagen">📎</button>
+            <input id="file" type="file" accept="image/*" multiple hidden />
+            <button type="submit" id="send" class="primary send">Enviar</button>
+            <button type="button" id="stop" class="ghost hidden">Detener</button>
+          </form>
+          <p class="hint">OpenCode Go · las respuestas pueden contener errores.</p>
+        </footer>
+      </main>
+    </div>
+
+    <script src="/vendor/marked.min.js"></script>
+    <script src="/vendor/purify.min.js"></script>
+    <script src="/vendor/highlight.min.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

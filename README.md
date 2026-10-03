@@ -1,53 +1,104 @@
-# template-base
+# Champi
 
-Minimal base template for AI-driven projects. Clone this for every new project
-(brand agent, website, tool, generation pipeline) and rename as needed.
+Chat web minimalista en `chat.eduardovilla.com`, conectado a los modelos de
+**OpenCode Go**. Guarda tus conversaciones, permite adjuntar imágenes y corre en
+Docker con HTTPS automático (Caddy).
 
-Built on three separated layers:
+## Características
 
-- **Tools** (git, Docker, MCP) — infrastructure, configured per environment.
-- **Standards** (README, AGENTS.md, dotfiles) — adopted from the industry, same in every repo.
-- **Operational base** (numbered folders + flow) — context engineering conventions.
+- Streaming de respuestas en tiempo real (SSE).
+- Conversaciones persistidas en SQLite: lista lateral para retomar hilos.
+- Adjuntar imágenes (botón, pegar o arrastrar) para modelos con visión.
+- Selector de modelo de OpenCode Go.
+- Markdown y resaltado de código en las respuestas.
+- Login con contraseña; la API key nunca llega al navegador.
+- TLS gestionado por el Caddy ya existente en el servidor (proyecto `crm`).
 
-## Structure
+## Estructura
 
 ```
 .
-├── README.md            # Humans: what this project is and how to work on it
-├── AGENTS.md            # AI agents: rules of the game (commands, style, limits)
-├── .gitignore           # What never gets committed
-├── .env.example         # Environment variables without real secrets
-├── .gitattributes       # Consistent line endings (Windows ↔ Linux)
-├── .opencode/           # Tool layer: agents, skills, commands
-│
-├── 01_context/          # Stable rules: identity, brand voice, what "correct" means
-├── 02_resources/        # Assets + knowledge: logos, fonts, docs, approved examples
-│   ├── assets/
-│   └── docs/
-├── 03_outputs/          # Generated deliverables (regenerable, not source of truth)
-│
-├── 04_templates/        # (empty scaffold) Blueprints for recurring deliverables
-├── 05_data/             # (empty scaffold) Structured operational data
-├── 06_automation/       # (empty scaffold) Mechanical scripts, no AI needed
-│
-├── inbox/               # Entry point: things arrive, get processed, move out
-└── archive/             # Retired items (never deleted)
+├── app/                 # código de la aplicación (Bun + Hono + SQLite)
+│   ├── index.ts         # servidor y rutas
+│   ├── db.ts            # esquema y consultas SQLite
+│   ├── opencode.ts      # cliente de la API de OpenCode Go
+│   ├── auth.ts          # login + cookie firmada
+│   └── public/          # frontend vanilla (HTML/CSS/JS + vendor)
+├── Dockerfile
+├── docker-compose.yml   # chat, unido a la red del Caddy existente
+└── .env.example
 ```
 
-## The three operating rules
+## Configuración
 
-These live in `AGENTS.md` and make the whole system work:
+Copia `.env.example` a `.env` y rellena:
 
-1. **Classify on creation** — everything new is a *rule* (01_context), an
-   *asset/knowledge item* (02_resources), or a *product* (03_outputs). Never mix.
-2. **Inbox flow** — requests land in `inbox/`, get processed to their destination
-   folder, then get archived. Nothing is deleted.
-3. **Graduation** — an approved output that was reused twice moves to
-   `02_resources/docs/` as a reference example.
+| Variable | Descripción |
+|---|---|
+| `OPENCODE_GO_API_KEY` | API key de tu suscripción Go en https://opencode.ai/zen |
+| `APP_PASSWORD` | Contraseña para entrar al chat |
+| `SESSION_SECRET` | Cadena larga y aleatoria para firmar la sesión |
+| `DEFAULT_MODEL` | Modelo por defecto (p. ej. `deepseek-v4.1-flash`) |
+| `GO_BASE_URL` | `https://opencode.ai/zen/go/v1` |
+| `GO_USER_AGENT` | Identificador del cliente enviado como User-Agent |
 
-## How to start a new project from this template
+El `.env` nunca se versiona. Los datos de la app viven en `data/` (SQLite +
+imágenes subidas) y también están ignorados por git.
 
-1. Clone or use this repo as a GitHub template.
-2. Fill `01_context/` with the project's rules and identity.
-3. Describe build/test/lint commands and boundaries in `AGENTS.md`.
-4. Delete the numbered folders you don't need — keep it minimal (KISS).
+## Desarrollo local
+
+Requiere [Bun](https://bun.sh):
+
+```bash
+cd app && bun install
+COOKIE_SECURE=false APP_PASSWORD=dev SESSION_SECRET=dev-secret \
+  OPENCODE_GO_API_KEY=tu-key bun run --watch index.ts
+```
+
+Abre http://localhost:3000.
+
+## Despliegue con Docker
+
+Este servidor ya tiene un Caddy (proyecto `crm`) escuchando en 80/443. Champi no
+levanta su propio proxy: se une a la red `crm_crm-internal` y se publica a través
+de ese Caddy.
+
+1. Rellena `.env` (`OPENCODE_GO_API_KEY`, `APP_PASSWORD`, `SESSION_SECRET`).
+2. Levanta el contenedor:
+
+```bash
+docker compose up -d --build
+docker compose logs -f chat
+```
+
+3. El Caddy del CRM ya tiene este bloque (proyecto `../resources/crm/Caddyfile`):
+
+```caddyfile
+chat.eduardovilla.com {
+	encode zstd gzip
+	reverse_proxy champi-chat:3000
+}
+```
+
+Recarga Caddy tras cualquier cambio del Caddyfile:
+
+```bash
+docker exec crm-caddy-1 caddy reload --config /etc/caddy/Caddyfile
+```
+
+Caddy obtiene el certificado TLS automáticamente. Los datos se guardan en
+`./data` del host.
+
+## Integración con OpenCode Go
+
+- Endpoint OpenAI-compatible: `POST {GO_BASE_URL}/chat/completions` con `stream: true`.
+- Se envían los headers `Authorization: Bearer …`, `User-Agent` propio y
+  `x-opencode-session` (id de conversación) según la política de uso de Go.
+- Solo los modelos con visión aceptan imágenes (p. ej.
+  `deepseek-v4-flash-vision-exp`); el selector los marca como `· visión`.
+- El uso cuenta contra los límites mensuales de tu plan Go.
+
+## Créditos
+
+Construido sobre la plantilla base de contexto (`01_context/` … `06_automation/`).
+Ver `AGENTS.md` para las convenciones del repositorio.

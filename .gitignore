@@ -3,12 +3,15 @@
 .env.*
 !.env.example
 
-# Dependencies / builds (uncomment when the project uses them)
-# node_modules/
-# dist/
-# build/
-# __pycache__/
-# *.pyc
+# Dependencies / builds
+node_modules/
+dist/
+build/
+bun.lockb
+bun.lock
+
+# App runtime data (SQLite DB + uploaded images). Never commit.
+data/
 
 # Large generated artifacts live in 03_outputs — decide what is worth versioning
 # (keep final deliverables under ~10MB, archive the rest)

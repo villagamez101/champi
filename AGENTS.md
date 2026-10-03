@@ -61,9 +61,29 @@ separate folders so agents load the right material at the right moment.
 
 ## Commands
 
-This template is documentation-only by default: `git` adds/commits are the only
-commands. When a derived project adds a build system or scripts, document them
-here (copy-paste runnable) before any agent uses them.
+Champi is a minimalist chat web app (`app/`) backed by the OpenCode Go API, with
+SQLite persistence and a vanilla frontend. See `README.md` for the full setup.
+
+Run locally (Bun required):
+
+```bash
+cd app && bun install && DEFAULT_MODEL=deepseek-v4.1-flash bun run --watch index.ts
+```
+
+Build and run with Docker:
+
+```bash
+cp .env.example .env   # then fill in the real values
+docker compose up -d --build
+docker compose logs -f chat
+```
+
+The app joins the external `crm_crm-internal` network; TLS is served by the
+existing `crm-caddy-1` container, which proxies `chat.eduardovilla.com` to
+`champi-chat:3000`. Do not add a second reverse proxy on 80/443. Config lives in
+`.env` (never commit it). App data (`data/chat.db` and `data/uploads/`) is
+gitignored. Static assets are vendored under `app/public/vendor`; no CDN is used
+at runtime.
 
 ## Boundaries
 

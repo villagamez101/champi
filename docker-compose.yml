@@ -1,0 +1,20 @@
+services:
+  chat:
+    build: .
+    container_name: champi-chat
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "3000"
+      DATA_DIR: /data
+    volumes:
+      - ./data:/data
+    expose:
+      - "3000"
+    networks:
+      - crm-internal
+
+networks:
+  crm-internal:
+    external: true
+    name: crm_crm-internal

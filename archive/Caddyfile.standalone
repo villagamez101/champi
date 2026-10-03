@@ -1,0 +1,4 @@
+chat.eduardovilla.com {
+	encode zstd gzip
+	reverse_proxy chat:3000
+}
